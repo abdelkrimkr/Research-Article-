@@ -1,5 +1,6 @@
 import subprocess
 import os
+import sys # Import sys module
 
 main_tex_file = "main" # No .tex extension here
 
@@ -39,8 +40,10 @@ def compile_pdf():
                 print("A LaTeX error was detected. Please check the log file for more details.")
             elif "Undefined citation" in e.stdout:
                  print("Undefined citations detected. Check your .bib file and citation keys.")
+        sys.exit(1) # Exit with error code
     except FileNotFoundError as e:
         print(f"Error: A required command was not found: {e.filename}. Please ensure pdflatex and biber are installed and in your PATH.")
+        sys.exit(1) # Exit with error code
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
