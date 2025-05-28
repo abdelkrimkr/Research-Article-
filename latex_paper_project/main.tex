@@ -1,0 +1,31 @@
+\documentclass{article}
+
+% Essential LaTeX packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex} % Added style and sorting options for biblatex
+\usepackage{hyperref}
+\usepackage[a4paper]{geometry} % Standard margins will be applied by default
+
+% Link to the bibliography file
+\addbibresource{bibliography/references.bib}
+
+\begin{document}
+
+% Include sections
+\input{sections/title_abstract.tex}
+\input{sections/introduction.tex}
+\input{sections/materials_methods.tex}
+\input{sections/results.tex}
+\input{sections/discussion.tex}
+\input{sections/conclusion.tex}
+\input{sections/acknowledgements.tex}
+
+% Print the bibliography
+\printbibliography
+
+\end{document}
