@@ -9,10 +9,8 @@ jobs:
       - name: Set up TeX Live
         uses: xu-cheng/texlive-action@v2
         with:
-          scheme: basic # Using basic scheme and will install biber and other needed packages manually
-          texlive_version: 2023 # Or latest
-          packages: biber latexmk chktex # latexmk for robust compilation, chktex for linting (optional)
-          # Add other specific packages if main.tex requires them and they are not in basic scheme + biber
+          scheme: basic # Using basic scheme and will install packages manually
+          texlive_version: 2023 # Use a specific year or 'latest' as per action's docs
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -22,34 +20,51 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install additional LaTeX packages
+      - name: Install LaTeX packages with tlmgr
         run: |
-          sudo apt-get update
-          # Install packages that might be missing from texlive basic for the current document
-          # This is a common requirement for specific fonts or complex packages.
-          # For this project, babel-french, inputenc, fontenc, amsmath, amssymb, graphicx, geometry, hyperref should be covered by a reasonable scheme.
-          # However, let's ensure common ones are there if not in 'basic' + 'biber'.
-          # tlmgr might also be used here if preferred: tlmgr install <package>
-          # For now, assuming xu-cheng/texlive-action with 'scheme: basic' + 'packages: biber' handles most,
-          # but if errors occur, specific missing .sty files would need to be installed here.
-          # Example: sudo apt-get install -y texlive-lang-french texlive-latex-extra
-          # The texlive-action installs a fairly complete TeXLive, so specific apt-get might not be needed
-          # Let's rely on the 'packages' option of texlive-action first.
-          # Add a step to install specific packages for French language support if not covered
+          echo "Starting LaTeX package installation..."
           tlmgr_path=$(find /usr/local/texlive -name tlmgr -type f -print -quit)
-          if [ -z "$tlmgr_path" ]; then echo "tlmgr not found"; exit 1; fi
-          sudo $tlmgr_path update --self
-          # Essential packages for the document (some might be included in 'scheme: basic')
-          sudo $tlmgr_path install babel-french inputenc fontenc amsmath amssymb graphicx geometry hyperref biblatex # Add any other specific packages
-          echo "Finished installing additional LaTeX packages."
+          if [ -z "$tlmgr_path" ]; then
+            echo "Error: tlmgr not found. This shouldn't happen if TeX Live was set up correctly."
+            exit 1
+          fi
+          echo "Found tlmgr at: $tlmgr_path"
 
+          # Update tlmgr itself
+          sudo $tlmgr_path update --self
+
+          # Install necessary packages
+          # scheme: basic is very minimal, so we need to install many common packages.
+          # latexmk is a robust build tool.
+          # biber is for bibliography.
+          # The others are common LaTeX packages.
+          echo "Installing core packages: latexmk, biber..."
+          sudo $tlmgr_path install latexmk biber
+          
+          echo "Installing language and font packages: babel-french, inputenc, fontenc..."
+          sudo $tlmgr_path install babel-french inputenc fontenc
+          
+          echo "Installing math and graphics packages: amsmath, amssymb, graphicx..."
+          sudo $tlmgr_path install amsmath amssymb graphicx
+          
+          echo "Installing layout and utility packages: geometry, hyperref, biblatex..."
+          sudo $tlmgr_path install geometry hyperref biblatex
+
+          # Add any other specific packages your document might need
+          # For example, if using specific fonts or complex diagrams:
+          # sudo $tlmgr_path install <package1> <package2>
+
+          echo "Finished installing LaTeX packages."
 
       - name: Compile LaTeX document
         id: compile
         run: |
           cd latex_paper_project
+          # Using latexmk for robust compilation. It handles multiple runs and biber automatically.
+          # Ensure compile_latex.py is adjusted or bypassed if latexmk is used directly here.
+          # For now, keeping the python script:
           python compile_latex.py > ../../compilation_log.txt 2>&1
-        continue-on-error: true # Allow the job to continue to the issue creation step
+        continue-on-error: true
 
       - name: Create GitHub Issue on Failure
         if: steps.compile.outcome == 'failure'
@@ -58,9 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           filename: .github/latex_compilation_issue_template.md
-          assignees: ${{ github.actor }} # Assigns the user who triggered the workflow
-          # Update issue title and body to be more dynamic if possible
-          # The template file will help structure the issue.
+          assignees: ${{ github.actor }}
 
       - name: Upload PDF artifact
         if: steps.compile.outcome == 'success'
