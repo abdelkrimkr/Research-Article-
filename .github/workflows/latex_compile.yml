@@ -11,7 +11,7 @@ jobs:
         with:
           scheme: basic # Using basic scheme and will install biber and other needed packages manually
           texlive_version: 2023 # Or latest
-          packages: biber latexmk chktex # latexmk for robust compilation, chktex for linting (optional)
+          packages: biber latexmk chktex babel-french inputenc fontenc amsmath amssymb graphicx geometry hyperref biblatex
           # Add other specific packages if main.tex requires them and they are not in basic scheme + biber
 
       - name: Checkout Repository
@@ -22,34 +22,18 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install additional LaTeX packages
-        run: |
-          sudo apt-get update
-          # Install packages that might be missing from texlive basic for the current document
-          # This is a common requirement for specific fonts or complex packages.
-          # For this project, babel-french, inputenc, fontenc, amsmath, amssymb, graphicx, geometry, hyperref should be covered by a reasonable scheme.
-          # However, let's ensure common ones are there if not in 'basic' + 'biber'.
-          # tlmgr might also be used here if preferred: tlmgr install <package>
-          # For now, assuming xu-cheng/texlive-action with 'scheme: basic' + 'packages: biber' handles most,
-          # but if errors occur, specific missing .sty files would need to be installed here.
-          # Example: sudo apt-get install -y texlive-lang-french texlive-latex-extra
-          # The texlive-action installs a fairly complete TeXLive, so specific apt-get might not be needed
-          # Let's rely on the 'packages' option of texlive-action first.
-          # Add a step to install specific packages for French language support if not covered
-          tlmgr_path=$(find /usr/local/texlive -name tlmgr -type f -print -quit)
-          if [ -z "$tlmgr_path" ]; then echo "tlmgr not found"; exit 1; fi
-          sudo $tlmgr_path update --self
-          # Essential packages for the document (some might be included in 'scheme: basic')
-          sudo $tlmgr_path install babel-french inputenc fontenc amsmath amssymb graphicx geometry hyperref biblatex # Add any other specific packages
-          echo "Finished installing additional LaTeX packages."
-
-
       - name: Compile LaTeX document
         id: compile
         run: |
           cd latex_paper_project
           python compile_latex.py > ../../compilation_log.txt 2>&1
         continue-on-error: true # Allow the job to continue to the issue creation step
+
+      - name: Lint LaTeX source with chktex
+        run: |
+          echo "Linting LaTeX source code with chktex..."
+          chktex latex_paper_project/main.tex
+        continue-on-error: true # Do not fail the workflow for linting warnings
 
       - name: Create GitHub Issue on Failure
         if: steps.compile.outcome == 'failure'

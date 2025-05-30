@@ -9,10 +9,6 @@ The LaTeX compilation process failed during the automated workflow.
 **Actor:** `${{ github.actor }}`
 **Commit:** `${{ github.sha }}` (if applicable)
 
-Please find the compilation log attached as an artifact (`compilation-log.txt`) in the workflow run, or review the output below if it's short:
-
-```
-{{ env.COMPILATION_LOG_CONTENT }} <!-- We'll need to get this from the log file -->
-```
+The LaTeX compilation process failed. **Please download and review the `compilation-log.txt` file attached as an artifact in the workflow run to identify the errors.**
 
 Please investigate the errors in `compilation_log.txt` and fix the LaTeX source files.
