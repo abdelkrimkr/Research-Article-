@@ -6,6 +6,9 @@ jobs:
   compile_latex:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Set up TeX Live
         uses: xu-cheng/texlive-action@v2
         with:
@@ -14,19 +17,20 @@ jobs:
           packages: biber latexmk chktex babel-french inputenc fontenc amsmath amssymb graphicx geometry hyperref biblatex
           # Add other specific packages if main.tex requires them and they are not in basic scheme + biber
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
+      - name: Install Python dependencies
+        run: |
+          if [ -f latex_paper_project/requirements.txt ]; then pip install -r latex_paper_project/requirements.txt; fi
+
       - name: Compile LaTeX document
         id: compile
         run: |
           cd latex_paper_project
-          python compile_latex.py > ../../compilation_log.txt 2>&1
+          python compile_latex.py > ../compilation_log.txt 2>&1
         continue-on-error: true # Allow the job to continue to the issue creation step
 
       - name: Lint LaTeX source with chktex
