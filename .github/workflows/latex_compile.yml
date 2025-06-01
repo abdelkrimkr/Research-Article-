@@ -12,10 +12,11 @@ jobs:
       - name: Set up TeX Live
         uses: xu-cheng/texlive-action@v2
         with:
-          scheme: basic # Using basic scheme and will install biber and other needed packages manually
-          texlive_version: 2023 # Or latest
-          packages: biber latexmk chktex babel-french inputenc fontenc amsmath amssymb graphicx geometry hyperref biblatex
-          # Add other specific packages if main.tex requires them and they are not in basic scheme + biber
+          scheme: full  # Using full scheme to ensure all required packages are available
+          run: |
+            # Install additional packages needed for compilation
+            tlmgr install biber latexmk chktex babel-french csquotes
+            tlmgr update --self --all
 
       - name: Set up Python
         uses: actions/setup-python@v4
