@@ -12,10 +12,10 @@ jobs:
       - name: Set up TeX Live
         uses: xu-cheng/texlive-action@v2
         with:
-          scheme: basic # Using basic scheme and will install biber and other needed packages manually
-          texlive_version: 2023 # Or latest
-          packages: biber latexmk chktex babel-french inputenc fontenc amsmath amssymb graphicx geometry hyperref biblatex
-          # Add other specific packages if main.tex requires them and they are not in basic scheme + biber
+          scheme: basic
+          run: |
+            tlmgr update --self
+            tlmgr install latexmk biber chktex babel-french amsmath amsfonts graphics geometry hyperref biblatex csquotes
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -47,8 +47,6 @@ jobs:
         with:
           filename: .github/latex_compilation_issue_template.md
           assignees: ${{ github.actor }} # Assigns the user who triggered the workflow
-          # Update issue title and body to be more dynamic if possible
-          # The template file will help structure the issue.
 
       - name: Upload PDF artifact
         if: steps.compile.outcome == 'success'
