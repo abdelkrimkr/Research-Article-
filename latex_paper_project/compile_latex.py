@@ -1,12 +1,32 @@
 import subprocess
 import os
-import sys # Import sys module
+import sys
 
-main_tex_file = "main" # No .tex extension here
+# Define ANSI colors for UX improvement
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def cprint(message, color=None):
+    """Prints a message in color if supported or forced."""
+    use_color = sys.stdout.isatty() or os.environ.get('FORCE_COLOR')
+    if use_color and color:
+        print(f"{color}{message}{Colors.ENDC}")
+    else:
+        print(message)
+
+main_tex_file = "main"
 
 def compile_pdf():
     try:
-        print(f"Running latexmk on {main_tex_file}.tex...")
+        cprint(f"🚀 Running latexmk on {main_tex_file}.tex...", Colors.OKCYAN)
         # Command to compile LaTeX document using latexmk, ensuring PDF generation,
         # using pdflatex with specific flags, and calling biber.
         latexmk_command = [
@@ -18,24 +38,25 @@ def compile_pdf():
         ]
         subprocess.run(latexmk_command, check=True, capture_output=True, text=True)
 
-        print(f"PDF compiled successfully with latexmk: {main_tex_file}.pdf")
+        cprint(f"✅ PDF compiled successfully: {main_tex_file}.pdf", Colors.OKGREEN)
 
     except subprocess.CalledProcessError as e:
-        print(f"An error occurred during latexmk compilation: {e}")
-        print(f"Command '{' '.join(e.cmd)}' returned non-zero exit status {e.returncode}.")
+        cprint(f"❌ An error occurred during latexmk compilation: {e}", Colors.FAIL)
+        cprint(f"Command '{' '.join(e.cmd)}' returned non-zero exit status {e.returncode}.", Colors.FAIL)
         # stdout and stderr are already captured as text due to text=True
         if e.stdout:
-            print(f"Stdout:\n{e.stdout}")
+            cprint(f"Stdout:\n{e.stdout}", Colors.FAIL)
         if e.stderr:
-            print(f"Stderr:\n{e.stderr}")
+            cprint(f"Stderr:\n{e.stderr}", Colors.FAIL)
         # Suggest checking the latexmk log file for detailed errors
-        print(f"Please check the log file '{main_tex_file}.log' for more details.")
+        cprint(f"⚠️  Please check the log file '{main_tex_file}.log' for more details.", Colors.WARNING)
         sys.exit(1) # Exit with error code
     except FileNotFoundError as e:
-        print(f"Error: A required command was not found: {e.filename}. Please ensure latexmk, pdflatex, and biber are installed and in your PATH.")
+        cprint(f"❌ Error: Required command not found: {e.filename}", Colors.FAIL)
+        cprint(f"👉 Please ensure latexmk, pdflatex, and biber are installed and in your PATH.", Colors.FAIL)
         sys.exit(1) # Exit with error code
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        cprint(f"❌ An unexpected error occurred: {e}", Colors.FAIL)
 
 
 if __name__ == "__main__":
