@@ -33,7 +33,6 @@ def compile_pdf():
             "latexmk",
             "-pdf",
             "-pdflatex=pdflatex -interaction=nonstopmode -file-line-error",
-            "-biber",
             f"{main_tex_file}.tex"
         ]
         subprocess.run(latexmk_command, check=True, capture_output=True, text=True)
